@@ -2,7 +2,6 @@ package com.jonahstarling.lostlantern
 
 import android.app.Fragment
 import android.content.Context
-import android.content.Context.SENSOR_SERVICE
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -13,20 +12,33 @@ import android.view.View
 import android.view.ViewGroup
 import android.hardware.SensorManager
 import kotlinx.android.synthetic.main.fragment_main_menu.view.*
+import android.animation.TimeAnimator
 
 
 /**
  * Created by jonah on 11/11/17.
  */
+
 class MainMenuFragment : Fragment(), SensorEventListener {
 
     private lateinit var rootView: View
     private lateinit var sensorManager: SensorManager
     private var phoneLeveled: Boolean = false
+    private var movingUp: Boolean = false
+    private var movingBack: Boolean = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         rootView = inflater.inflate(R.layout.fragment_main_menu, container, false)
         sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val animator = TimeAnimator()
+        animator.setTimeListener { _, _, _ ->
+            if (movingUp) {
+                rootView.player.y -= 5
+            } else if (movingBack) {
+                rootView.player.y += 5
+            }
+        }
+        animator.start()
         return rootView
     }
 
@@ -48,9 +60,14 @@ class MainMenuFragment : Fragment(), SensorEventListener {
     override fun onSensorChanged(sensorEvent: SensorEvent) {
         if (phoneLeveled) {
             if (sensorEvent.values[1] > 1.5f) {
-                rootView.player.y += 4f
+                movingBack = true
+                movingUp = false
             } else if (sensorEvent.values[1] < -1.5f) {
-                rootView.player.y -= 4f
+                movingUp = true
+                movingBack = false
+            } else {
+                movingUp = false
+                movingBack = false
             }
         } else {
             phoneLeveled = checkPhoneLeveled(sensorEvent)
@@ -59,7 +76,7 @@ class MainMenuFragment : Fragment(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //TODO: Maybe do something here
     }
 
     private fun checkPhoneLeveled(sensorEvent: SensorEvent): Boolean {
