@@ -13,10 +13,20 @@ import android.view.ViewGroup
 import android.hardware.SensorManager
 import kotlinx.android.synthetic.main.fragment_main_menu.view.*
 import android.animation.TimeAnimator
+import android.animation.ValueAnimator
+import android.os.Handler
+import kotlinx.android.synthetic.main.fragment_main_menu.*
+import java.util.*
 
 
 /**
- * Created by jonah on 11/11/17.
+ * Created by Jonah Starling on 11/11/17.
+ *
+ * Main Menu Fragment:
+ *     -
+ *
+ * Relevant Files:
+ *     -
  */
 
 class MainMenuFragment : Fragment(), SensorEventListener {
@@ -24,21 +34,29 @@ class MainMenuFragment : Fragment(), SensorEventListener {
     private lateinit var rootView: View
     private lateinit var sensorManager: SensorManager
     private var phoneLeveled: Boolean = false
-    private var movingUp: Boolean = false
-    private var movingBack: Boolean = false
+    private var xSpeed: Float = 0.0f
+    private var ySpeed: Float = 0.0f
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         rootView = inflater.inflate(R.layout.fragment_main_menu, container, false)
         sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val animator = TimeAnimator()
         animator.setTimeListener { _, _, _ ->
-            if (movingUp) {
-                rootView.player.y -= 5
-            } else if (movingBack) {
-                rootView.player.y += 5
-            }
+            rootView.player.x += xSpeed
+            rootView.player.y += ySpeed
         }
         animator.start()
+
+        val handler = Handler()
+        handler.postDelayed({
+            if (!phoneLeveled) {
+                val hintTextAnimator = ValueAnimator.ofInt(0, 1)
+                hintTextAnimator.duration = 1000
+                hintTextAnimator.addUpdateListener { rootView.hintText.alpha = hintTextAnimator.animatedFraction }
+                hintTextAnimator.start()
+            }
+        }, 2000)
+
         return rootView
     }
 
@@ -59,19 +77,10 @@ class MainMenuFragment : Fragment(), SensorEventListener {
 
     override fun onSensorChanged(sensorEvent: SensorEvent) {
         if (phoneLeveled) {
-            if (sensorEvent.values[1] > 1.5f) {
-                movingBack = true
-                movingUp = false
-            } else if (sensorEvent.values[1] < -1.5f) {
-                movingUp = true
-                movingBack = false
-            } else {
-                movingUp = false
-                movingBack = false
-            }
+            calculateXSpeed(sensorEvent)
+            calculateYSpeed(sensorEvent)
         } else {
             phoneLeveled = checkPhoneLeveled(sensorEvent)
-            Log.d("phoneLeveled", phoneLeveled.toString())
         }
     }
 
@@ -88,6 +97,42 @@ class MainMenuFragment : Fragment(), SensorEventListener {
         if (sensorEvent.values[1] < 1.0f && sensorEvent.values[1] > -1.0f) {
             checkY = true
         }
+        if (checkX && checkY) {
+            if (rootView.hintText.alpha != 0f) {
+                val hintTextAnimator = ValueAnimator.ofFloat(rootView.hintText.alpha, 0f)
+                hintTextAnimator.duration = 1000
+                hintTextAnimator.addUpdateListener { rootView.hintText.alpha = hintTextAnimator.animatedValue as Float }
+                hintTextAnimator.start()
+            }
+        }
         return checkX && checkY
+    }
+
+    private fun calculateXSpeed(sensorEvent: SensorEvent) {
+        xSpeed = when {
+            sensorEvent.values[0] > 1.5f -> {
+                -sensorEvent.values[0]
+            }
+            sensorEvent.values[0] < -1.5f -> {
+                -sensorEvent.values[0]
+            }
+            else -> {
+                0.0f
+            }
+        }
+    }
+
+    private fun calculateYSpeed(sensorEvent: SensorEvent) {
+        ySpeed = when {
+            sensorEvent.values[1] > 1.5f -> {
+                sensorEvent.values[1]
+            }
+            sensorEvent.values[1] < -1.5f -> {
+                sensorEvent.values[1]
+            }
+            else -> {
+                0.0f
+            }
+        }
     }
 }

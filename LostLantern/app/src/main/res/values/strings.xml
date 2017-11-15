@@ -3,4 +3,5 @@
     <string name="lost_lantern">Lost Lantern</string>
     <string name="welcome_text">welcome to the jungle</string>
     <string name="enter">enter</string>
+    <string name="hint">level phone then tilt to move</string>
 </resources>

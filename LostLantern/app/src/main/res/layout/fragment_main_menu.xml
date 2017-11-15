@@ -53,4 +53,15 @@
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/enterGate"/>
 
+    <TextView
+        android:id="@+id/hintText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/player"
+        android:text="@string/hint"
+        android:textColor="#777"
+        android:alpha="0"/>
+
 </RelativeLayout>
