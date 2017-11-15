@@ -47,8 +47,8 @@
 
     <com.jonahstarling.lostlantern.PlayerView
         android:id="@+id/player"
-        android:layout_width="12dp"
-        android:layout_height="12dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginTop="80dp"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/enterGate"/>

@@ -6,7 +6,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,8 +14,7 @@ import kotlinx.android.synthetic.main.fragment_main_menu.view.*
 import android.animation.TimeAnimator
 import android.animation.ValueAnimator
 import android.os.Handler
-import kotlinx.android.synthetic.main.fragment_main_menu.*
-import java.util.*
+import android.util.Log
 
 
 /**
@@ -40,13 +38,22 @@ class MainMenuFragment : Fragment(), SensorEventListener {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         rootView = inflater.inflate(R.layout.fragment_main_menu, container, false)
         sensorManager = activity.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        // Update player
         val animator = TimeAnimator()
         animator.setTimeListener { _, _, _ ->
             rootView.player.x += xSpeed
             rootView.player.y += ySpeed
+            if (xSpeed > 0.0f) {
+                rootView.player.angle = Math.atan(ySpeed.toDouble() / xSpeed.toDouble())
+            } else if (xSpeed < 0.0f) {
+                rootView.player.angle = Math.atan(ySpeed.toDouble() / xSpeed.toDouble()) + Math.PI
+            }
+            rootView.player.invalidate()
         }
         animator.start()
 
+        // Wait to show hint text and then animate into view
         val handler = Handler()
         handler.postDelayed({
             if (!phoneLeveled) {
@@ -62,23 +69,21 @@ class MainMenuFragment : Fragment(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
-        // register this class as a listener for the orientation and
-        // accelerometer sensors
+        // Register this class as a listener for the orientation and accelerometer sensors
         sensorManager.registerListener(this,
                 sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     override fun onPause() {
-        // unregister listener
         super.onPause()
         sensorManager.unregisterListener(this)
     }
 
     override fun onSensorChanged(sensorEvent: SensorEvent) {
         if (phoneLeveled) {
-            calculateXSpeed(sensorEvent)
-            calculateYSpeed(sensorEvent)
+            xSpeed = PlayerMovement.calculateXSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
+            ySpeed = PlayerMovement.calculateYSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
         } else {
             phoneLeveled = checkPhoneLeveled(sensorEvent)
         }
@@ -106,33 +111,5 @@ class MainMenuFragment : Fragment(), SensorEventListener {
             }
         }
         return checkX && checkY
-    }
-
-    private fun calculateXSpeed(sensorEvent: SensorEvent) {
-        xSpeed = when {
-            sensorEvent.values[0] > 1.5f -> {
-                -sensorEvent.values[0]
-            }
-            sensorEvent.values[0] < -1.5f -> {
-                -sensorEvent.values[0]
-            }
-            else -> {
-                0.0f
-            }
-        }
-    }
-
-    private fun calculateYSpeed(sensorEvent: SensorEvent) {
-        ySpeed = when {
-            sensorEvent.values[1] > 1.5f -> {
-                sensorEvent.values[1]
-            }
-            sensorEvent.values[1] < -1.5f -> {
-                sensorEvent.values[1]
-            }
-            else -> {
-                0.0f
-            }
-        }
     }
 }
