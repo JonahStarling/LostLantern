@@ -1,0 +1,17 @@
+<RelativeLayout android:id="@+id/mainMenuContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:animateLayoutChanges="true"
+    android:background="#111">
+
+    <com.jonahstarling.lostlantern.PlayerView
+        android:id="@+id/player"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="80dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"/>
+
+</RelativeLayout>

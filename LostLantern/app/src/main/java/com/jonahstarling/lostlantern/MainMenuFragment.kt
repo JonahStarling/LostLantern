@@ -13,8 +13,8 @@ import android.hardware.SensorManager
 import kotlinx.android.synthetic.main.fragment_main_menu.view.*
 import android.animation.TimeAnimator
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.os.Handler
-import android.util.Log
 
 
 /**
@@ -49,6 +49,12 @@ class MainMenuFragment : Fragment(), SensorEventListener {
                 rootView.player.angle = Math.atan(ySpeed.toDouble() / xSpeed.toDouble())
             } else if (xSpeed < 0.0f) {
                 rootView.player.angle = Math.atan(ySpeed.toDouble() / xSpeed.toDouble()) + Math.PI
+            } else if (xSpeed == 0.0f) {
+                if (ySpeed >= 0.0f) {
+                    rootView.player.angle = Math.PI / 2
+                } else {
+                    rootView.player.angle = 3 * Math.PI / 2
+                }
             }
             rootView.player.invalidate()
         }
@@ -87,6 +93,9 @@ class MainMenuFragment : Fragment(), SensorEventListener {
                 xSpeed = 0.0f
                 ySpeed = 0.0f
                 sensorManager.unregisterListener(this)
+                val intent = Intent(activity, GameActivity().javaClass)
+                startActivity(intent)
+                activity.finish()
             } else {
                 xSpeed = PlayerMovement.calculateXSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
                 ySpeed = PlayerMovement.calculateYSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
