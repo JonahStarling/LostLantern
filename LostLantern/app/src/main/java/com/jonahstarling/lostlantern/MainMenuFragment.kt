@@ -32,6 +32,7 @@ class MainMenuFragment : Fragment(), SensorEventListener {
     private lateinit var rootView: View
     private lateinit var sensorManager: SensorManager
     private var phoneLeveled: Boolean = false
+    private var enteredGate: Boolean = false
     private var xSpeed: Float = 0.0f
     private var ySpeed: Float = 0.0f
 
@@ -82,8 +83,15 @@ class MainMenuFragment : Fragment(), SensorEventListener {
 
     override fun onSensorChanged(sensorEvent: SensorEvent) {
         if (phoneLeveled) {
-            xSpeed = PlayerMovement.calculateXSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
-            ySpeed = PlayerMovement.calculateYSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
+            if (enteredGate) {
+                xSpeed = 0.0f
+                ySpeed = 0.0f
+                sensorManager.unregisterListener(this)
+            } else {
+                xSpeed = PlayerMovement.calculateXSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
+                ySpeed = PlayerMovement.calculateYSpeed(sensorEvent, 0.1f, PlayerMovement.SPEED_MULTIPLIER_NORMAL)
+                enteredGate = checkEnter()
+            }
         } else {
             phoneLeveled = checkPhoneLeveled(sensorEvent)
         }
@@ -111,5 +119,27 @@ class MainMenuFragment : Fragment(), SensorEventListener {
             }
         }
         return checkX && checkY
+    }
+
+    private fun checkEnter(): Boolean {
+        // Enter Box
+        val enterTop = rootView.enterGate.y
+        val enterBottom = enterTop + rootView.enterGate.height
+        val enterLeft = rootView.enterGate.x
+        val enterRight = enterLeft + rootView.enterGate.width
+
+        // Player Box
+        val playerTop = rootView.player.y
+        val playerBottom = playerTop + rootView.player.height
+        val playerLeft = rootView.player.x
+        val playerRight = playerLeft + rootView.player.width
+
+        // Check if Player Box is inside Enter Box
+        if (playerTop > enterTop && playerBottom < enterBottom) {
+            if (playerLeft > enterLeft && playerRight < enterRight) {
+                return true
+            }
+        }
+        return false
     }
 }
